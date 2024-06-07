@@ -24,29 +24,4 @@ export const getData = async (endpoint: string) => {
   }
 };
 
-// // POST 요청 함수
-// export const postData = async ({endpoint, data) => {
-//   try {
-//     const token = localStorage.getItem("access_token");
-//     const response = await fetch(`${baseURL}${endpoint}`, {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//         ...(token && { "Authorization": `Bearer ${token}` }), // 토큰이 있을 경우 헤더에 추가
-//       },
-//       body: JSON.stringify(data),
-//     });
-
-//     if (!response.ok) {
-//       throw new Error(`Failed to post data to ${endpoint}: ${response.statusText}`);
-//     }
-
-//     const responseData = await response.json();
-//     return responseData;
-//   } catch (error) {
-//     console.error(`Failed to post data to ${endpoint}:`, error);
-//     throw error;
-//   }
-// };
-
 export default getData;
