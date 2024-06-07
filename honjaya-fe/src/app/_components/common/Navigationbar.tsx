@@ -1,19 +1,20 @@
-'use client'
+'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const Navigationbar = () => {
-    const [open, setOpen] = useState(false)
+    const [open, setOpen] = useState(false);
 
     const handleHovering = () => {
-        setOpen((prevOpen) => !prevOpen)
-    }
+        setOpen((prevOpen) => !prevOpen);
+    };
 
     return (
         <div style={{ height: "10%" }} className="flex w-full items-center justify-between text-lg bg-main-color">
             <div className='relative w-1/12 h-full overflow-hidden'>
-                <img src='./logo1.png' className="w-auto h-full" alt="로고1" />
+                <Image src='/logo1.png' alt="로고1" layout="fill" objectFit="contain" />
             </div>
             <div
                 className='relative flex font-light text-white items-center justify-center w-1/12 h-full'

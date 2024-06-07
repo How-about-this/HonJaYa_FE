@@ -1,6 +1,4 @@
-"use client";
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CustomNumberInput from '../../_components/customNum';
 import StepIndicator from '../../_components/stepIndicator';
 import NavigationButtons from './navigationbuttons/NavigationButtons';
@@ -21,15 +19,24 @@ interface Step4Props {
     nextStep: () => void;
     prevStep: () => void;
     updateFormData: (data: Partial<FormData>) => void;
+    formData: any;
 }
 
-const Step4: React.FC<Step4Props> = ({ nextStep, prevStep, updateFormData }) => {
+const Step4: React.FC<Step4Props> = ({ nextStep, prevStep, updateFormData, formData }) => {
     const [showAllMbti, setShowAllMbti] = useState(false);
-    const [selectedMbti, setSelectedMbti] = useState<string | undefined>(undefined);
-    const [selectedReligion, setSelectedReligion] = useState<string | undefined>(undefined);
-    const [selectedDrinking, setSelectedDrinking] = useState<string | undefined>(undefined);
-    const [height, setHeight] = useState<number>(170);
-    const [weight, setWeight] = useState<number>(70);
+    const [selectedMbti, setSelectedMbti] = useState<string | undefined>(formData.mbti || undefined);
+    const [selectedReligion, setSelectedReligion] = useState<string | undefined>(formData.religion || undefined);
+    const [selectedDrinking, setSelectedDrinking] = useState<string | undefined>(formData.drinking_capacity || undefined);
+    const [height, setHeight] = useState<number>(formData.height || 170);
+    const [weight, setWeight] = useState<number>(formData.weight || 70);
+
+    useEffect(() => {
+        setSelectedMbti(formData.mbti || undefined);
+        setSelectedReligion(formData.religion || undefined);
+        setSelectedDrinking(formData.drinking_capacity || undefined);
+        setHeight(formData.height || 170);
+        setWeight(formData.weight || 70);
+    }, [formData]);
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();

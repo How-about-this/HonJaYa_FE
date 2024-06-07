@@ -11,7 +11,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage }) => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     // 메시지 전송 함수(handleSubmit)
-    const handleSubmit = (event) => {
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (message.trim() !== '') {
             onSendMessage(message);

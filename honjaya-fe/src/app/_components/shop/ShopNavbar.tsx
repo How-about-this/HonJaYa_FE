@@ -1,7 +1,7 @@
-// src/app/(route)/ShopNavbar.js
+// src/app/(route)/ShopNavbar.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, MouseEvent } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
@@ -11,7 +11,7 @@ const GuideModal = dynamic(() => import('@/app/(route)/modal/@modal/shopguide/pa
 const ShopNavbar = () => {
     const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
 
-    const openGuideModal = (event) => {
+    const openGuideModal = (event: MouseEvent<HTMLAnchorElement>) => {
         event.preventDefault();
         setIsGuideModalOpen(true);
     };

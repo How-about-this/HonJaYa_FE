@@ -2,9 +2,14 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import ItemPurchase from '@/app/(route)/modal/@modal/shop/ItemPurchase';
+import { requestPayment } from '@/app/api/payment'
 
-const ItemPurchase = () => {
-    const [selectedItem, setSelectedItem] = useState<number | null>(null);
+const ZemShop = () => {
+    const [selectedItem, setSelectedItem] = useState<number | null>(null); // 사용자가 선택한 아이템의 ID 저장
+    const [isItemShopOpen, setIsItemShopOpen] = useState(false); // 아이템 샵 모달
+    const userZem = 1000; // 사용자가 보유한 ZEM 수량
+
     const items = [
         { id: 1, price: 100, diamonds: 1, image: "/zemImages/zem1.png", zem: 10 },
         { id: 2, price: 500, diamonds: 2, image: "/zemImages/zem2.png", zem: 50 },
@@ -16,15 +21,49 @@ const ItemPurchase = () => {
         { id: 8, price: 100000, diamonds: 8, image: "/zemImages/zem8.png", zem: 12000, originalZem: 10000 },
     ];
 
-    const userZem = 1000;
+    const token = localStorage.getItem('access_token');
 
+    // 아이템 클릭 핸들러
     const handleItemClick = (id: number) => {
         setSelectedItem(id);
     };
 
-    const handlePaymentClick = () => {
-        // 결제 로직 추가
-        alert("결제하기 버튼이 클릭되었습니다.");
+    // 결제 처리 핸들러
+    // 백엔드에서 응답 받은 redirection URL로 이동
+    const handlePaymentClick = async () => {
+        if (selectedItem === null) {
+            alert('아이템을 선택해 주세요.');
+            return;
+        }
+
+        const selectedItemData = items.find(item => item.id === selectedItem);
+
+        if (!selectedItemData) {
+            alert('선택된 아이템을 찾을 수 없습니다.');
+            return;
+        }
+
+        const payInfoDto = {
+            price: selectedItemData.price,
+            itemName: "zem_" + selectedItemData.zem
+        };
+
+        try {
+            const data = await requestPayment(payInfoDto);
+            const redirectUrl = data.redirectUrl; // 서버에서 반환되는 redirection URL
+            window.location.href = redirectUrl;
+        } catch (error) {
+            console.error('Error payment:', error);
+            alert('Payment failed');
+        }
+    };
+
+    // 아이템 샵 모달 핸들러
+    const openItemShop = () => {
+        setIsItemShopOpen(true);
+    };
+    const closeItemShop = () => {
+        setIsItemShopOpen(false);
     };
 
     return (
@@ -50,15 +89,9 @@ const ItemPurchase = () => {
                 </div>
             </div>
 
-
-
-
-
-
-
-            <div className="flex items-center justify-between bg-red-300 py-2 px-12 rounded-lg mb-4 max-w-5xl mx-auto">
+            <div className="flex items-center justify-between bg-red-300 py-2 px-12 rounded-lg mb-4 max-w-5xl mx-auto relative">
                 <h2 className="text-4xl font-semibold">보유 ZEM</h2>
-                <div className="flex items-center">
+                <div className="flex items-center space-x-2">
                     <span className="text-xl font-semibold">: {userZem}</span>
                     <div className="text-pink-500">
                         <Image
@@ -68,6 +101,12 @@ const ItemPurchase = () => {
                             height={56}
                         />
                     </div>
+                    <button
+                        className="bg-blue-500 text-white text-lg font-bold py-2 px-4 rounded-lg"
+                        onClick={openItemShop}
+                    >
+                        아이템 샵 둘러보기
+                    </button>
                 </div>
             </div>
 
@@ -136,8 +175,22 @@ const ItemPurchase = () => {
                     결제하기
                 </button>
             </div>
+
+            {isItemShopOpen && (
+                <div className="fixed inset-0 z-50 flex items-start justify-center bg-black bg-opacity-50 transition-opacity duration-300">
+                    <div className="bg-white w-11/12 max-w-4xl p-6 mt-10 shadow-lg relative">
+                        <button
+                            onClick={closeItemShop}
+                            className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-4xl"
+                        >
+                            &times;
+                        </button>
+                        <ItemPurchase userZem={userZem} />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
-export default ItemPurchase;
+export default ZemShop;
