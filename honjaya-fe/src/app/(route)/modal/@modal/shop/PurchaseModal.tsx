@@ -1,12 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-import axios from 'axios';
+import { purchaseItem } from '@/app/api/api'; // API 파일 경로에 맞게 수정하세요
 
-const PurchaseModal = ({ item, onClose, userZem }) => {
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [isZemInsufficient, setIsZemInsufficient] = useState(false);
+interface Item {
+    name: string;
+    price: number;
+    endpoint: string;
+}
+
+interface PurchaseModalProps {
+    item: Item;
+    onClose: () => void;
+    userZem: number;
+}
+
+const PurchaseModal: React.FC<PurchaseModalProps> = ({ item, onClose, userZem }) => {
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
+    const [isZemInsufficient, setIsZemInsufficient] = useState<boolean>(false);
 
     const handlePurchase = async () => {
         if (userZem < item.price) {
@@ -15,11 +27,11 @@ const PurchaseModal = ({ item, onClose, userZem }) => {
         }
         setLoading(true);
         try {
-            const response = await axios.post(item.endpoint);
+            await purchaseItem(item.endpoint);
             alert('구매가 완료되었습니다!');
             onClose();
         } catch (error) {
-            setError('구매에 실패했습니다. 다시 시도해주세요.');
+            setError((error as Error).message);
         } finally {
             setLoading(false);
         }
@@ -31,7 +43,7 @@ const PurchaseModal = ({ item, onClose, userZem }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300">
-            <div className="bg-white w-11/12 max-w-md p-6 mt-10 shadow-lg relative transition-transform duration-300 transform">
+            <div className="bg-white w-11/12 max-w-md p-6 mt-10 shadow-lg relative transition-transform duration-300 transform overflow-hidden">
                 <button
                     onClick={onClose}
                     className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-4xl"
@@ -60,7 +72,7 @@ const PurchaseModal = ({ item, onClose, userZem }) => {
 
             {isZemInsufficient && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300">
-                    <div className="bg-white w-11/12 max-w-md p-6 mt-10 shadow-lg relative transition-transform duration-300 transform">
+                    <div className="bg-white w-11/12 max-w-md p-6 mt-10 shadow-lg relative transition-transform duration-300 transform overflow-hidden">
                         <button
                             onClick={handleCloseInsufficientModal}
                             className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-4xl"
