@@ -8,9 +8,10 @@ interface ChatMessageProps {
     message: string;
     isOwnMessage: boolean;
     timestamp: string;
+    onDelete: () => void;
 }
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ message, isOwnMessage, timestamp }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ message, isOwnMessage, timestamp, onDelete }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isLiked, setIsLiked] = useState(false);
 
@@ -37,7 +38,10 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, isOwnMessage, timest
                 <div className={`relative p-2 m-2 ${isOwnMessage ? 'rounded-bl-xl rounded-tl-xl rounded-br-xl' : 'rounded-tr-xl rounded-br-xl rounded-bl-xl'} ${isOwnMessage ? 'bg-green-400 text-black' : 'bg-gray-200'}`}>
                     {message}
                     {isHovered && (
-                        <HeartButton isOwnMessage={isOwnMessage} onLike={handleLikeClick} />
+                        <>
+                            <button onClick={onDelete} className="absolute top-0 right-0">🗑️</button>
+                            <HeartButton isOwnMessage={isOwnMessage} onLike={handleLikeClick} />
+                        </>
                     )}
                 </div>
                 <span className="text-xs text-gray-500 mt-1">{timestamp}</span>
