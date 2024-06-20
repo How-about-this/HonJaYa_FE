@@ -10,7 +10,7 @@ import TeamChatButtons from "@/app/_components/buttons/TeamChatButtons";
 //이미지 배열((매칭됨 && 시간 유효한 유저)들의 이미지 정보 배열)은 추후 fetching
 //얘를 
 import { useDispatch, useSelector } from "react-redux";
-import { approve } from "@/state/actions";
+import { approve, exitGroup, joinGroup } from "@/state/actions";
 import { RootState } from "@/state/reducers/rootReducer";
 import { verifyUser } from "@/app/utils/verifyUser";
 import { useRouter } from 'next/navigation';
@@ -27,15 +27,21 @@ const WaitingRoom = () => {
     const [open, setOpen] = useState<boolean>(false)
     const [openTeamCreateModal, setOpenTeamCreateModal] = useState<boolean>(false)
     const [openTeamJoinModal, setOpenTeamJoinModal] = useState<boolean>(false)
+    const [openGroupChatCreateModal, setOpenGroupChatCreateModal] = useState<boolean>(false)
+    const [openTeamEditModal, setOpenTeamEditModal] = useState<boolean>(false)
+    const [onGroup, setOnGroup] = useState<boolean>(false);
+    const [groupChatServerId, setGroupChatServerId] = useState<string>("");
+    const [isLeader, setIsLeader] = useState<boolean>(false);
 
     const dispatch = useDispatch();
     const isTeam = useSelector((state: RootState) => state.modeCheck.isTeam)
     const isMatchingModalOpened = useSelector((state: RootState) => state.matchingStatusModal.isOpened)
     const isLogined = useSelector((state: RootState) => state.loginCheck.isLogined)
+    // const onGroup = useSelector((state: RootState) => state.onGroup.onGroup)
     const router = useRouter();
 
     useEffect(() => {
-        if (!isLogined) {
+        if (!(isLogined === "Y")) {
             if (verifyUser()) {
                 dispatch(approve());
             } else {
@@ -66,6 +72,26 @@ const WaitingRoom = () => {
     }, [isTeam]);
 
     useEffect(() => {
+        const getGroupChatServerUser = async () => {
+          try {
+            const response = await getData(`/user/${localStorage.getItem('user_id')}`, "groupChat")
+            setGroupChatServerId(response.id)
+            setIsLeader(response.leader);
+            setOnGroup(response.party);
+            console.log(response);
+            // if(response.isParty) {
+            //     dispatch(joinGroup())
+            // } else {
+            //     dispatch(exitGroup())
+            // }
+          } catch (error) {
+            console.log(error);
+          }
+        }
+        getGroupChatServerUser();
+      }, [openTeamCreateModal, openTeamJoinModal]);
+
+    useEffect(() => {
         const getPartnerObjects = async () => {
             try {
                 const response = await getData(`/chat/rooms/${localStorage.getItem("user_id")}`, "honjaya");
@@ -82,7 +108,11 @@ const WaitingRoom = () => {
                 const response = await getData(`/group/list`, "groupChat");
                 console.log(response);
                 const objects = response;
-                setGroupObjects(() => (objects))
+                setGroupObjects(() => (objects.filter((object: any) => {
+                    if (object.gender === localStorage.getItem("userGender")) {
+                        return true;
+                    }
+                })))
             } catch (e) {
                 console.log(e);
             }
@@ -115,7 +145,7 @@ const WaitingRoom = () => {
     // }, [isMatchingModalOpened])
 
     const nextSlide = () => {
-        if ((currentPage + 1) * objectsPerPage < (isTeam? groupObjects.length : partnerObjects.length)) {
+        if ((currentPage + 1) * objectsPerPage < (isTeam ? groupObjects.length : partnerObjects.length)) {
             setCurrentPage(currentPage + 1);
         }
     };
@@ -139,46 +169,59 @@ const WaitingRoom = () => {
                 <div className="w-full h-1/10 text-3xl font-jua flex items-end justify-around box-border pt-2 px-10">
                     {isTeam ? <div className="flex items-end w-3/10 h-full text-4xl">참여중인 팀</div> : <div className="flex w-3/10 items-end h-full text-4xl">매칭된 상대</div>}
                     <div className="w-3/10 h-full flex justify-center items-center">
-                        <Image src="https://www.svgrepo.com/show/436843/person-fill.svg" width={20} height={20} alt="single" />
+                        <img src="https://www.svgrepo.com/show/436843/person-fill.svg" width={20} height={20} alt="single" />
                         <ToggleSwitch />
-                        <Image src="https://www.svgrepo.com/show/436838/person-3-fill.svg" width={20} height={20} alt="team" />
+                        <img src="https://www.svgrepo.com/show/436838/person-3-fill.svg" width={20} height={20} alt="team" />
                     </div>
                     <div className="w-3/10 h-full flex justify-end">
-                        <button
-                            onClick={setFilterOpen}
-                            className={`${open ? 'hidden' : ''} bg-filter w-12 h-full rounded-md bg-cover bg-center`}></button>
-                        {open && (
-                            <FilterModal setFilterOpen={setFilterOpen} />
-                        )}
+                        {
+                            !isTeam ? (
+                                <>
+                                    <button
+                                        onClick={setFilterOpen}
+                                        className={`${open ? 'hidden' : ''} bg-filter w-12 h-full rounded-md bg-cover bg-center`}>
+                                    </button>
+                                    {open && (
+                                        <FilterModal setFilterOpen={setFilterOpen} />
+                                    )}
+                                </>
+                            ) : (
+                                onGroup ? <div>팀있음</div> : <div>팀없음</div>
+                            )
+                        }
                     </div>
                 </div>
                 {/* 매칭되어 있는 유저 리스팅 */}
                 {
-                    isTeam ?
+                    isTeam ? onGroup ?
                         <TeamContainers
                             objects={groupObjects}
                             prevSlide={prevSlide}
                             nextSlide={nextSlide}
                             currentPage={currentPage}
                             objectsPerPage={objectsPerPage}
-                        /> : <PartnerContainers
-                            objects={partnerObjects}
-                            prevSlide={prevSlide}
-                            nextSlide={nextSlide}
-                            currentPage={currentPage}
-                            objectsPerPage={objectsPerPage} 
-                            />
+                        /> : <div className="w-full h-3/10"></div> : 
+                        <PartnerContainers
+                        objects={partnerObjects}
+                        prevSlide={prevSlide}
+                        nextSlide={nextSlide}
+                        currentPage={currentPage}
+                        objectsPerPage={objectsPerPage}
+                    />
                 }
 
                 <div className="w-full h-2/10">
                     {isTeam ?
-                        <TeamChatButtons
+                        <TeamChatButtons                        
                             openTeamCreateModal={openTeamCreateModal}
-                            setOpenTeamCreateModal={() => { setOpenTeamCreateModal((prev) => (!prev)) }} 
+                            setOpenTeamCreateModal={() => { setOpenTeamCreateModal((prev) => (!prev)) }}
                             openTeamJoinModal={openTeamJoinModal}
-                            setOpenTeamJoinModal={() => { setOpenTeamJoinModal((prev) => (!prev)) }} 
-
-                            /> : <MatchingButton />}
+                            setOpenTeamJoinModal={() => { setOpenTeamJoinModal((prev) => (!prev)) }}
+                            openGroupChatCreateModal={openGroupChatCreateModal}
+                            setOpenGroupChatCreateModal={() => { setOpenGroupChatCreateModal((prev) => (!prev)) }}
+                            openTeamEditModal={openTeamEditModal}
+                            setOpenTeamEditModal={() => { setOpenTeamEditModal((prev) => (!prev)) }}
+                        /> : <MatchingButton />}
                 </div>
             </div>
         </div>
